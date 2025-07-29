@@ -3,202 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key Press Detector - Local vs Remote</title>
+    <title>Input Analysis Tool</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
+            margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
-            color: white;
+            color: #e8e8e8;
         }
 
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+        .main-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 40px);
+        }
+
+        .left-panel {
+            flex: 1;
+            background: #1e1e2e;
+            border-radius: 12px;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2d2d3f;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: #1e1e2e;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #2d2d3f;
+            overflow-y: auto;
         }
 
         h1 {
             text-align: center;
             margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 2.2em;
+            color: #f8f9fa;
+            font-weight: 600;
         }
 
-        .rule-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
+        .textarea-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .textarea-label {
+            font-size: 1.1em;
+            margin-bottom: 15px;
             text-align: center;
+            font-weight: 500;
+            color: #b8b8b8;
         }
 
-        .rule-info strong {
-            color: #ffd93d;
+        #textArea {
+            flex: 1;
+            width: 100%;
+            border: 2px solid #3a3a4f;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 16px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #2a2a3e;
+            color: #e8e8e8;
+            resize: none;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
         }
 
-        .main-content {
+        #textArea:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background: #2d2d42;
+        }
+
+        #textArea::placeholder {
+            color: #6c757d;
+        }
+
+        .final-result {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.4em;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .final-result.local {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .stats-section {
+            background: #2a2a3e;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px solid #3a3a4f;
+        }
+
+        .stats-section h3 {
+            margin-top: 0;
+            color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin: 30px 0;
+            gap: 20px;
+            margin-top: 20px;
         }
 
-        .text-area-section {
-            background: rgba(255, 255, 255, 0.1);
+        .stat-item {
+            background: #1e1e2e;
             padding: 20px;
-            border-radius: 10px;
-        }
-
-        .text-area-section h3 {
-            margin-top: 0;
-            text-align: center;
-        }
-
-        .text-area {
-            width: 100%;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            color: white;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            resize: vertical;
-        }
-
-        .text-area:focus {
-            outline: none;
-            border-color: #ffd93d;
-        }
-
-        .average-section {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-        }
-
-        .average-section h3 {
-            margin-top: 0;
-            text-align: center;
-            font-size: 1.2em;
-        }
-
-        .average-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-
-        .average-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
             border-radius: 8px;
-            text-align: center;
+            border: 1px solid #3a3a4f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .average-value {
+        .stat-item div:first-child {
+            font-size: 0.9em;
+            color: #b8b8b8;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-value {
             font-size: 1.8em;
-            font-weight: bold;
-            margin: 10px 0;
+            font-weight: 700;
+            margin: 8px 0;
         }
 
-        .average-value.local {
+        .stat-value.local {
             color: #4ecdc4;
         }
 
-        .average-value.remote {
+        .stat-value.remote {
             color: #ff6b6b;
         }
 
+        .key-display {
+            background: #2a2a3e;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid #3a3a4f;
+        }
+
+        .current-key {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #f8f9fa;
+        }
+
+        .detection-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            background: #1e1e2e;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #3a3a4f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-item div:first-child {
+            font-size: 0.9em;
+            color: #b8b8b8;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .info-value.local {
+            color: #4ecdc4;
+        }
+
+        .info-value.remote {
+            color: #ff6b6b;
+        }
+
+        .info-value.duration {
+            color: #f39c12;
+        }
+
+        .log-section {
+            background: #2a2a3e;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 1px solid #3a3a4f;
+        }
+
+        .log-section h3 {
+            margin-top: 0;
+            text-align: center;
+            color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .log-item {
+            background: #1e1e2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid #3a3a4f;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .log-key {
+            font-weight: 600;
+            color: #f39c12;
+        }
+
+        .log-type.local {
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+
+        .log-type.remote {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+
         .clear-btn {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #6c757d, #495057);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
+            padding: 12px 30px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1em;
+            font-weight: 500;
             margin: 20px auto;
             display: block;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .clear-btn:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #5a6268, #343a40);
         }
 
         @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
+            .main-container {
+                flex-direction: column;
+                height: auto;
             }
             
-            .text-area {
-                height: 300px;
+            .left-panel, .right-panel {
+                min-height: 400px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔑 Key Press Detector</h1>
-        
-        <div class="rule-info">
-            <strong>Detection Rule:</strong> If key press duration < 5ms = REMOTE, else = LOCAL
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="textarea-container">
+                <div class="textarea-label">📝 Input Analysis Area</div>
+                <textarea id="textArea" placeholder="Begin typing here to analyze input patterns..."></textarea>
+            </div>
         </div>
 
-        <div class="main-content">
-            <div class="text-area-section">
-                <h3>📝 Type Here</h3>
-                <textarea class="text-area" id="textArea" placeholder="Start typing here..."></textarea>
+        <div class="right-panel">
+            <h1>Input Analysis Dashboard</h1>
+            
+            <div class="final-result" id="finalResult">
+                <div>Analysis Result: <span id="finalResultText">-</span></div>
             </div>
 
-            <div class="average-section">
-                <h3>📊 Average Result</h3>
-                <div class="average-grid">
-                    <div class="average-item">
-                        <div>Average Type</div>
-                        <div class="average-value" id="averageType">LOCAL</div>
+            <div class="stats-section">
+                <h3>📊 Input Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div>Local Inputs</div>
+                        <div class="stat-value local" id="localCount">0</div>
+                        <div id="localPercentage">0%</div>
                     </div>
-                    <div class="average-item">
-                        <div>Consecutive Remote</div>
-                        <div class="average-value" id="consecutiveRemote">0</div>
-                    </div>
-                    <div class="average-item">
-                        <div>Total Keys</div>
-                        <div class="average-value" id="totalKeys">0</div>
-                    </div>
-                    <div class="average-item">
-                        <div>Average Duration</div>
-                        <div class="average-value" id="averageDuration">0ms</div>
+                    <div class="stat-item">
+                        <div>Remote Inputs</div>
+                        <div class="stat-value remote" id="remoteCount">0</div>
+                        <div id="remotePercentage">0%</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <button class="clear-btn" onclick="clearDisplay()">Clear All</button>
+            <div class="key-display">
+                <div>Current Input:</div>
+                <div class="current-key" id="currentKey">-</div>
+                
+                <div class="detection-info">
+                    <div class="info-item">
+                        <div>Classification</div>
+                        <div class="info-value" id="detectedType">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div>Response Time</div>
+                        <div class="info-value duration" id="keyDuration">0ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="log-section">
+                <h3>📝 Input Log</h3>
+                <div id="keyLog">
+                    <div class="log-item">No inputs recorded yet</div>
+                </div>
+            </div>
+
+            <button class="clear-btn" onclick="clearDisplay()">Clear Analysis</button>
+        </div>
     </div>
 
     <script>
+        let currentKey = null;
         let keyStartTime = null;
-        let consecutiveRemote = 0;
-        let totalKeys = 0;
-        let totalDuration = 0;
+        let keyLog = [];
+        let localCount = 0;
+        let remoteCount = 0;
+        const textArea = document.getElementById('textArea');
 
-        // Event listeners for key events
-        document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('keyup', handleKeyUp);
+        // Event listeners for key events on the textarea
+        textArea.addEventListener('keydown', handleKeyDown);
+        textArea.addEventListener('keyup', handleKeyUp);
 
         function handleKeyDown(event) {
             const timestamp = new Date();
+            currentKey = event.key;
             keyStartTime = timestamp;
+            
+            document.getElementById('currentKey').textContent = event.key;
+            document.getElementById('detectedType').textContent = '-';
+            document.getElementById('keyDuration').textContent = '0ms';
         }
 
         function handleKeyUp(event) {
@@ -207,62 +374,128 @@
             const timestamp = new Date();
             const duration = timestamp.getTime() - keyStartTime.getTime();
             
-            // Detection rule: < 5ms = remote, >= 5ms = local
-            const detectedType = duration < 5 ? 'REMOTE' : 'LOCAL';
+            const detectedType = duration < 5 ? 'Remote' : 'Local';
             
-            // Update consecutive remote count
-            if (detectedType === 'REMOTE') {
-                consecutiveRemote++;
+            document.getElementById('detectedType').textContent = detectedType;
+            document.getElementById('keyDuration').textContent = duration + 'ms';
+            
+            // Update counts
+            if (detectedType === 'Remote') {
+                remoteCount++;
             } else {
-                consecutiveRemote = 0;
+                localCount++;
             }
             
-            // Update totals
-            totalKeys++;
-            totalDuration += duration;
+            // Add to log
+            addToLog(currentKey, detectedType, duration);
             
-            // Update average analysis
-            updateAverageAnalysis();
+            // Update statistics and final result
+            updateStatistics();
             
             // Reset for next key press
-            keyStartTime = null;
+            setTimeout(() => {
+                currentKey = null;
+                keyStartTime = null;
+                document.getElementById('currentKey').textContent = '-';
+            }, 1000);
         }
 
-        function updateAverageAnalysis() {
-            const avgDuration = totalKeys > 0 ? Math.round(totalDuration / totalKeys) : 0;
+        function updateStatistics() {
+            const totalKeys = localCount + remoteCount;
             
-            // Determine average type based on consecutive remote count
-            let averageType = 'LOCAL';
-            if (consecutiveRemote > 10) {
-                averageType = 'REMOTE';
+            if (totalKeys === 0) {
+                document.getElementById('localCount').textContent = '0';
+                document.getElementById('remoteCount').textContent = '0';
+                document.getElementById('localPercentage').textContent = '0%';
+                document.getElementById('remotePercentage').textContent = '0%';
+                document.getElementById('finalResultText').textContent = '-';
+                document.getElementById('finalResult').className = 'final-result';
+                return;
             }
             
-            document.getElementById('averageType').textContent = averageType;
-            document.getElementById('consecutiveRemote').textContent = consecutiveRemote;
-            document.getElementById('totalKeys').textContent = totalKeys;
-            document.getElementById('averageDuration').textContent = avgDuration + 'ms';
+            const localPercentage = Math.round((localCount / totalKeys) * 100);
+            const remotePercentage = Math.round((remoteCount / totalKeys) * 100);
             
-            // Color code the average type
-            const averageTypeElement = document.getElementById('averageType');
-            averageTypeElement.className = 'average-value ' + averageType.toLowerCase();
+            document.getElementById('localCount').textContent = localCount;
+            document.getElementById('remoteCount').textContent = remoteCount;
+            document.getElementById('localPercentage').textContent = localPercentage + '%';
+            document.getElementById('remotePercentage').textContent = remotePercentage + '%';
+            
+            // Final result: if more than 10% are remote, show REMOTE, otherwise LOCAL
+            const finalResult = remotePercentage > 10 ? 'Remote Pattern' : 'Local Pattern';
+            document.getElementById('finalResultText').textContent = finalResult;
+            
+            // Update final result styling
+            const finalResultElement = document.getElementById('finalResult');
+            if (finalResult === 'Local Pattern') {
+                finalResultElement.className = 'final-result local';
+            } else {
+                finalResultElement.className = 'final-result';
+            }
+        }
+
+        function addToLog(key, type, duration) {
+            const logEntry = {
+                key: key,
+                type: type,
+                duration: duration,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            keyLog.unshift(logEntry); // Add to beginning of array
+            
+            // Keep only last 10 entries
+            if (keyLog.length > 10) {
+                keyLog = keyLog.slice(0, 10);
+            }
+            
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logContainer = document.getElementById('keyLog');
+            
+            if (keyLog.length === 0) {
+                logContainer.innerHTML = '<div class="log-item">No inputs recorded yet</div>';
+                return;
+            }
+            
+            let html = '';
+            keyLog.forEach((entry, index) => {
+                const typeClass = entry.type === 'Local' ? 'local' : 'remote';
+                html += `
+                    <div class="log-item">
+                        <span class="log-key">"${entry.key}"</span> | 
+                        <span class="log-type ${typeClass}">${entry.type}</span> | 
+                        <span>${entry.duration}ms</span> | 
+                        <span>${entry.timestamp}</span>
+                    </div>
+                `;
+            });
+            
+            logContainer.innerHTML = html;
         }
 
         function clearDisplay() {
+            currentKey = null;
             keyStartTime = null;
-            consecutiveRemote = 0;
-            totalKeys = 0;
-            totalDuration = 0;
-            document.getElementById('textArea').value = '';
-            updateAverageAnalysis();
+            keyLog = [];
+            localCount = 0;
+            remoteCount = 0;
+            document.getElementById('currentKey').textContent = '-';
+            document.getElementById('detectedType').textContent = '-';
+            document.getElementById('keyDuration').textContent = '0ms';
+            updateStatistics();
+            updateLogDisplay();
         }
 
-        // Focus the page to ensure key events are captured
+        // Focus the textarea when page loads
         window.addEventListener('load', () => {
-            document.body.focus();
+            textArea.focus();
         });
 
-        // Prevent default behavior for some keys to avoid page scrolling
-        document.addEventListener('keydown', (e) => {
+        // Only prevent default for arrow keys to avoid page scrolling
+        textArea.addEventListener('keydown', (e) => {
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
                 e.preventDefault();
             }
