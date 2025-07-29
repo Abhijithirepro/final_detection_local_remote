@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -42,11 +42,17 @@
             color: #ffd93d;
         }
 
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
         .text-area-section {
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 10px;
-            margin: 20px 0;
         }
 
         .text-area-section h3 {
@@ -56,7 +62,7 @@
 
         .text-area {
             width: 100%;
-            height: 200px;
+            height: 300px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
@@ -76,17 +82,17 @@
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 10px;
-            margin: 20px 0;
         }
 
         .average-section h3 {
             margin-top: 0;
             text-align: center;
+            font-size: 1.2em;
         }
 
         .average-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr;
             gap: 15px;
         }
 
@@ -127,6 +133,17 @@
         .clear-btn:hover {
             transform: scale(1.05);
         }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .text-area {
+                height: 300px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -137,29 +154,31 @@
             <strong>Detection Rule:</strong> If key press duration < 5ms = REMOTE, else = LOCAL
         </div>
 
-        <div class="text-area-section">
-            <h3>📝 Type Here</h3>
-            <textarea class="text-area" id="textArea" placeholder="Start typing here..."></textarea>
-        </div>
+        <div class="main-content">
+            <div class="text-area-section">
+                <h3>📝 Type Here</h3>
+                <textarea class="text-area" id="textArea" placeholder="Start typing here..."></textarea>
+            </div>
 
-        <div class="average-section">
-            <h3>📊 Average Result</h3>
-            <div class="average-grid">
-                <div class="average-item">
-                    <div>Average Type</div>
-                    <div class="average-value" id="averageType">LOCAL</div>
-                </div>
-                <div class="average-item">
-                    <div>Consecutive Remote</div>
-                    <div class="average-value" id="consecutiveRemote">0</div>
-                </div>
-                <div class="average-item">
-                    <div>Total Keys</div>
-                    <div class="average-value" id="totalKeys">0</div>
-                </div>
-                <div class="average-item">
-                    <div>Average Duration</div>
-                    <div class="average-value" id="averageDuration">0ms</div>
+            <div class="average-section">
+                <h3>📊 Average Result</h3>
+                <div class="average-grid">
+                    <div class="average-item">
+                        <div>Average Type</div>
+                        <div class="average-value" id="averageType">LOCAL</div>
+                    </div>
+                    <div class="average-item">
+                        <div>Consecutive Remote</div>
+                        <div class="average-value" id="consecutiveRemote">0</div>
+                    </div>
+                    <div class="average-item">
+                        <div>Total Keys</div>
+                        <div class="average-value" id="totalKeys">0</div>
+                    </div>
+                    <div class="average-item">
+                        <div>Average Duration</div>
+                        <div class="average-value" id="averageDuration">0ms</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -244,7 +263,7 @@
 
         // Prevent default behavior for some keys to avoid page scrolling
         document.addEventListener('keydown', (e) => {
-            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
                 e.preventDefault();
             }
         });
