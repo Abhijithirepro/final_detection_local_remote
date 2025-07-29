@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Press Detector - Local vs Remote</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .rule-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .rule-info strong {
+            color: #ffd93d;
+        }
+
+        .text-area-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .text-area-section h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .text-area {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        .text-area:focus {
+            outline: none;
+            border-color: #ffd93d;
+        }
+
+        .average-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .average-section h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .average-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .average-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .average-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .average-value.local {
+            color: #4ecdc4;
+        }
+
+        .average-value.remote {
+            color: #ff6b6b;
+        }
+
+        .clear-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 20px auto;
+            display: block;
+            transition: transform 0.2s;
+        }
+
+        .clear-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 Key Press Detector</h1>
+        
+        <div class="rule-info">
+            <strong>Detection Rule:</strong> If key press duration < 5ms = REMOTE, else = LOCAL
+        </div>
+
+        <div class="text-area-section">
+            <h3>📝 Type Here</h3>
+            <textarea class="text-area" id="textArea" placeholder="Start typing here..."></textarea>
+        </div>
+
+        <div class="average-section">
+            <h3>📊 Average Result</h3>
+            <div class="average-grid">
+                <div class="average-item">
+                    <div>Average Type</div>
+                    <div class="average-value" id="averageType">LOCAL</div>
+                </div>
+                <div class="average-item">
+                    <div>Consecutive Remote</div>
+                    <div class="average-value" id="consecutiveRemote">0</div>
+                </div>
+                <div class="average-item">
+                    <div>Total Keys</div>
+                    <div class="average-value" id="totalKeys">0</div>
+                </div>
+                <div class="average-item">
+                    <div>Average Duration</div>
+                    <div class="average-value" id="averageDuration">0ms</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="clear-btn" onclick="clearDisplay()">Clear All</button>
+    </div>
+
+    <script>
+        let keyStartTime = null;
+        let consecutiveRemote = 0;
+        let totalKeys = 0;
+        let totalDuration = 0;
+
+        // Event listeners for key events
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+
+        function handleKeyDown(event) {
+            const timestamp = new Date();
+            keyStartTime = timestamp;
+        }
+
+        function handleKeyUp(event) {
+            if (!keyStartTime) return;
+            
+            const timestamp = new Date();
+            const duration = timestamp.getTime() - keyStartTime.getTime();
+            
+            // Detection rule: < 5ms = remote, >= 5ms = local
+            const detectedType = duration < 5 ? 'REMOTE' : 'LOCAL';
+            
+            // Update consecutive remote count
+            if (detectedType === 'REMOTE') {
+                consecutiveRemote++;
+            } else {
+                consecutiveRemote = 0;
+            }
+            
+            // Update totals
+            totalKeys++;
+            totalDuration += duration;
+            
+            // Update average analysis
+            updateAverageAnalysis();
+            
+            // Reset for next key press
+            keyStartTime = null;
+        }
+
+        function updateAverageAnalysis() {
+            const avgDuration = totalKeys > 0 ? Math.round(totalDuration / totalKeys) : 0;
+            
+            // Determine average type based on consecutive remote count
+            let averageType = 'LOCAL';
+            if (consecutiveRemote > 10) {
+                averageType = 'REMOTE';
+            }
+            
+            document.getElementById('averageType').textContent = averageType;
+            document.getElementById('consecutiveRemote').textContent = consecutiveRemote;
+            document.getElementById('totalKeys').textContent = totalKeys;
+            document.getElementById('averageDuration').textContent = avgDuration + 'ms';
+            
+            // Color code the average type
+            const averageTypeElement = document.getElementById('averageType');
+            averageTypeElement.className = 'average-value ' + averageType.toLowerCase();
+        }
+
+        function clearDisplay() {
+            keyStartTime = null;
+            consecutiveRemote = 0;
+            totalKeys = 0;
+            totalDuration = 0;
+            document.getElementById('textArea').value = '';
+            updateAverageAnalysis();
+        }
+
+        // Focus the page to ensure key events are captured
+        window.addEventListener('load', () => {
+            document.body.focus();
+        });
+
+        // Prevent default behavior for some keys to avoid page scrolling
+        document.addEventListener('keydown', (e) => {
+            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html> 
